@@ -1,0 +1,71 @@
+mqtt v3 测试代码
+
+一.安装mqtt服务器
+1.下载 apollo
+  http://www.apache.org/dyn/closer.cgi?path=activemq/activemq-apollo/1.7.1/apache-apollo-1.7.1-windows-distro.zip
+
+2.解压并创建实例
+  D:\>cd D:\apache-apollo-1.7.1\bin
+  D:\apache-apollo-1.7.1\bin>apollo create d:\myApollo\mybroker
+  
+3.启动broker实例
+  cd D:\myApollo\mybroker\bin
+  apollo-broker  run
+
+二.编写mqtt客户端
+1.pom.xml
+  <dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+		
+2.实现 CallBack implements MqttCallback
+
+3.实现 Mqtt发布类
+ MqttClient client = new MqttClient("tcp://127.0.0.1:61613","mqttserver-pub");
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setUserName("admin");
+            options.setPassword("password".toCharArray());
+            options.setCleanSession(false);
+            options.setAutomaticReconnect(true);
+            client.connect(options);
+//            MqttTopic topic = client.getTopic("msg.topic");/public/TEST/windows
+            MqttTopic topic = client.getTopic("/public/TEST/windows");
+            MqttMessage message = new MqttMessage("Hello World".getBytes());
+            message.setQos(1);
+            while(true){
+                Thread.sleep(1000);
+                MqttDeliveryToken token = topic.publish(message);
+                while (!token.isComplete()){
+                    token.waitForCompletion(1000);
+                }
+            }
+            
+4.实现 MQTT订阅类
+ //创建MqttClient
+            MqttClient client = new MqttClient("tcp://127.0.0.1:61613", "java_client23432ere");
+            //创建连接可选项信息
+            MqttConnectOptions conOptions = new MqttConnectOptions();
+            //
+            conOptions.setUserName("admin");
+            conOptions.setPassword("password".toCharArray());
+            conOptions.setCleanSession(false);
+            conOptions.setAutomaticReconnect(true);
+            //回调处理类
+            CallBack callback = new CallBack(client,conOptions);
+            client.setCallback(callback);
+            //连接broker
+            client.connect(conOptions);
+            //发布相关的订阅
+            String[] topic = {"msg.topic","dance.topic","/public/TEST/#"};
+            int[] qos = {1,1,1};
+            client.subscribe(topic, qos);
+            //client.disconnect();
+            
+5.启动client
+  MQTTSubsribe mqttSubsribe = new MQTTSubsribe();
+	mqttSubsribe.subsribe();
+	MQTTPublisher mqttPublisher = new MQTTPublisher();
+	mqttPublisher.publish();
+
